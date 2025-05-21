@@ -90,7 +90,7 @@ class SmartCartApp:
             for item in cart["items"]:
                 self.tree.insert("", tk.END, values=(
                     item["name"],
-                    f"${item['price']:.2f}",
+                    f"₹ {item['price']:.2f}",
                     item["quantity"]
                 ), tags=(item["barcode"],))
 
@@ -237,16 +237,16 @@ class SmartCartApp:
             subtotal = item["price"] * item["quantity"]
             tree.insert("", tk.END, values=(
                 item["name"],
-                f"${item['price']:.2f}",
+                f"₹ {item['price']:.2f}",
                 item["quantity"],
-                f"${subtotal:.2f}"
+                f"₹ {subtotal:.2f}"
             ))
         
         tree.pack(padx=20, pady=10, fill=tk.BOTH, expand=True)
         
         # Total
         tk.Label(invoice_win, 
-                text=f"TOTAL: ${invoice['total']:.2f}",
+                text=f"TOTAL: ₹ {invoice['total']:.2f}",
                 font=("Arial", 12, "bold")).pack(pady=10)
         
         # Close button
