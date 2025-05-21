@@ -26,7 +26,7 @@ An automated computer vision system that detects products using YOLO object dete
 sudo apt update && sudo apt install -y python3-pip python3-opencv
 
 # 2. Install Python packages
-pip3 install numpy firebase-admin ultralytics RPi.GPIO
+pip3 install numpy firebase-admin ultralytics pillow tk RPi.GPIO
 
 # 3. Enable camera
 sudo raspi-config
