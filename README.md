@@ -25,9 +25,7 @@ An automated computer vision system that detects products using YOLO object dete
 Use the following command to create a virtual environment named myenv:
 
 ```bash
-Copy
-Edit
-python -m venv cart_env
+python3 -m venv cart_env
 ```
 This will create a directory cart_env/ containing a standalone Python environment.
 
@@ -93,6 +91,6 @@ sudo systemctl enable --now product_scanner
 To view Real-Time cart items
 In new Terminal
 ```bash
-python smart_cart.py
+python3 smart_cart.py
 ```
 Proceed for checkout with Invoice Generation
