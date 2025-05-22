@@ -31,6 +31,13 @@ This will create a directory cart_env/ containing a standalone Python environmen
 
 ## Activate the Virtual Environment
 
+On Windows
+```bash
+Set-ExecutionPolicy Unrestricted -Scope Process
+.\cart_env\Scripts\activate
+```
+
+On Linux
 Activate it using this command:
 ```bash
 source cart_env/bin/activate
@@ -39,6 +46,17 @@ source cart_env/bin/activate
 Once activated, your terminal will show (cart_env) at the beginning of the prompt.
 
 ## Installation
+
+On Windows
+```bash
+pip3 install numpy firebase-admin ultralytics pillow tk
+```
+
+On Linux
+```bash
+pip3 install numpy firebase-admin ultralytics pillow tk 
+```
+On Linux(Raspberry Pi)
 ```bash
 # 1. Install dependencies
 sudo apt update && sudo apt install -y python3-pip python3-opencv

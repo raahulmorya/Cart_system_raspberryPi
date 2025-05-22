@@ -167,7 +167,7 @@ def main():
     # Camera settings
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    cap.set(cv2.CAP_PROP_FPS, 15)
+    cap.set(cv2.CAP_PROP_FPS, 30)
     
     print("System ready! Products will be added automatically. Press 'q' to quit.")
     
