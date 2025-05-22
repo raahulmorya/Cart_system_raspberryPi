@@ -145,7 +145,7 @@ Description=Cart System Product Detection
 After=network.target
 
 [Service]
-User=pi
+User=rahul
 WorkingDirectory=/home/rahul
 ExecStart=/bin/bash -c 'source cart_env/bin/activate && cd Cart_system_raspberryPi && python raspberry_pi_detect_products.py'
 Restart=on-failure
@@ -236,4 +236,95 @@ Next time when login via ssh, simply run
 
 ```bash
 ~/run_cart_system.sh
+```
+
+
+or if not using SSH
+
+## Setting Up a Tactile Button to Run/Stop a Script on Raspberry Pi Startup
+Hardware Setup
+Choose an available GPIO pin (e.g., GPIO2 )
+
+Connect one side of button to GPIO23
+
+Connect other side to Ground (Pin 14, 20, 30, or 34)
+
+Enable internal pull-up resistor in code
+
+Python Control Script
+Create /home/rahul/button_control.py:
+
+```python
+#!/usr/bin/env python3
+import RPi.GPIO as GPIO
+import subprocess
+import time
+
+# Configuration
+BUTTON_PIN = 2        # Using GPIO2
+SCRIPT = "/home/rahul/run_cart_system.sh"
+DEBOUNCE_TIME = 0.3    # Seconds
+
+# Setup GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+def run_script():
+    print("Executing script...")
+    subprocess.Popen([SCRIPT], shell=True)
+
+def button_pressed(channel):
+    # Debounce and check button is still pressed
+    time.sleep(DEBOUNCE_TIME)
+    if GPIO.input(BUTTON_PIN) == GPIO.LOW:
+        run_script()
+
+# Add event detection
+GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, 
+                     callback=button_pressed, 
+                     bouncetime=300)
+
+try:
+    print("Button controller running. Press CTRL+C to exit.")
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    GPIO.cleanup()
+```
+
+Make Files Executable
+```bash
+chmod +x ~/run_cart_system.sh
+chmod +x ~/button_control.py
+```
+Autostart Setup
+Create systemd service:
+
+```bash
+sudo nano /etc/systemd/system/button_control.service
+```
+Add this content:
+
+```ini
+[Unit]
+Description=Button Script Runner
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/rahul/button_control.py
+WorkingDirectory=/home/rahul
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=rahul
+
+[Install]
+WantedBy=multi-user.target
+```
+Enable and start the service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable button_runner.service
+sudo systemctl start button_runner.service  
 ```
