@@ -118,7 +118,7 @@ def process_frame(frame):
     
     # Remove old detections from tracking
     recent_detections = {k: v for k, v in recent_detections.items() 
-                        if current_time - v < 1.0}  # 1 second cooldown
+                        if current_time - v < 2.0}  # 2 second cooldown
     
     results = model(frame, verbose=False)
     

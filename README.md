@@ -130,12 +130,36 @@ Manual Start
 python raspberry_pi_detect_products.py
 ```
 
-Auto-start (systemd)
+For Automatic Startup (Systemd Service)
+If you want this to run automatically on boot:
+
+Create a service file:
+
 ```bash
-sudo cp systemd/product_scanner.service /etc/systemd/system/
-sudo systemctl enable --now product_scanner
+sudo nano /etc/systemd/system/cart_system.service
+Paste this configuration:
+
+ini
+[Unit]
+Description=Cart System Product Detection
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/rahul
+ExecStart=/bin/bash -c 'source cart_env/bin/activate && cd Cart_system_raspberryPi && python raspberry_pi_detect_products.py'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Enable and start the service:
 ```
 
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable cart_system.service
+sudo systemctl start cart_system.service
+```
 ## Live Cart and Checkout
 To view Real-Time cart items
 
@@ -186,7 +210,7 @@ Now, Create a new script file:
 ```bash
 nano ~/run_cart_system.sh
 ```
-
+Paste this inside
 
 ```bash
 #!/bin/bash
