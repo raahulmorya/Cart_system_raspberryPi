@@ -20,7 +20,7 @@ An automated computer vision system that detects products using YOLO object dete
 | LEDs                   | Red, Green, Blue                 |
 | Resistors              | 220Ω (x3)                        |
 
-## One step Initialization 
+## Option 1 - One step Initialization 
 
 - Create a firebase project  
 - Download Firebase Admin SDK 
@@ -52,7 +52,7 @@ cd Cart_system_raspberryPi
 ```
 Then switch to [Running the System on Window/Linux](#running-the-system-on-windowlinux)
  
-## Create a Virtual Environment
+## Option 2 - Create a Virtual Environment
 Use the following command to create a virtual environment named myenv:
 
 ```bash
