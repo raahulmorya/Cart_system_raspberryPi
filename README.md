@@ -318,15 +318,15 @@ Add this content:
 
 ```ini
 [Unit]
-Description=Button Script Runner
-After=network.target
+Description=GPIO2 Button Controller
+After=multi-user.target
+StartLimitIntervalSec=60
 
 [Service]
 ExecStart=/usr/bin/python3 /home/rahul/button_control.py
 WorkingDirectory=/home/rahul
-StandardOutput=inherit
-StandardError=inherit
 Restart=always
+RestartSec=5
 User=rahul
 
 [Install]
