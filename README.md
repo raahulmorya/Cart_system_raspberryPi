@@ -136,8 +136,9 @@ sudo cp systemd/product_scanner.service /etc/systemd/system/
 sudo systemctl enable --now product_scanner
 ```
 
-## Cart and Checkout
+## Live Cart and Checkout
 To view Real-Time cart items
+
 In new Terminal
 ```bash
 python smart_cart.py
