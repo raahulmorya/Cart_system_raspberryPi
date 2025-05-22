@@ -20,6 +20,26 @@ An automated computer vision system that detects products using YOLO object dete
 | LEDs                   | Red, Green, Blue                 |
 | Resistors              | 220Ω (x3)                        |
 
+
+## Create a Virtual Environment
+Use the following command to create a virtual environment named myenv:
+
+```bash
+Copy
+Edit
+python -m venv cart_env
+```
+This will create a directory cart_env/ containing a standalone Python environment.
+
+## Activate the Virtual Environment
+
+Activate it using this command:
+```bash
+source cart_env/bin/activate
+```
+
+Once activated, your terminal will show (cart_env) at the beginning of the prompt.
+
 ## Installation
 ```bash
 # 1. Install dependencies
