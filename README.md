@@ -40,7 +40,7 @@ git clone https://github.com/raahulmorya/Cart_system_raspberryPi
 cd Cart_system_raspberryPi
 ```
 
-On Windows:
+On Linux:
 ```bash
 mkdir CartSystem
 cd CartSystem
@@ -143,4 +143,73 @@ In new Terminal
 ```bash
 python smart_cart.py
 ```
-Proceed for checkout with Invoice Generation
+Proceed for checkout 
++ Invoice Generation
+
+
+## Automate scripts using ssh login
+To Enable SSH on Raspberry Pi
+-Boot your Raspberry Pi and log in
+-Open terminal and run:
+```bash
+sudo raspi-config
+```
+Navigate to: Interfacing Options → SSH → Yes → OK → Finish
+
+Reboot if prompted
+
+Setup ssh in Windows
+- [Windows Terminal SSH Tutorial](https://learn.microsoft.com/en-us/windows/terminal/tutorials/ssh)
+
+or
+Using Git Bash
+If you have Git installed, you can use Git Bash which includes SSH:
+
+Open Git Bash from Start menu
+
+Then use ssh normally
+or
+Using WSL (Windows Subsystem for Linux)
+Install WSL: wsl --install in PowerShell (admin)
+
+Then use ssh from the Linux terminal
+
+Once ssh installation done
+run this in terminal/git bash
+```bash
+ssh [USER_NAME]@[RASPBERRY_PI_IP]
+```
+then Enter password
+
+Now, Create a new script file:
+
+```bash
+nano ~/run_cart_system.sh
+```
+
+
+```bash
+#!/bin/bash
+cd ~/CartSystem
+source cart_env/bin/activate
+cd Cart_system_raspberryPi
+python raspberry_pi_detect_products.py
+```
+Save (Ctrl+O, Enter) and exit (Ctrl+X)
+
+Make the script executable:
+
+```bash
+chmod +x ~/run_cart_system.sh
+```
+Run it:
+
+```bash
+~/run_cart_system.sh
+```
+
+Next time when login via ssh, simply run
+
+```bash
+~/run_cart_system.sh
+```
