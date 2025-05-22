@@ -47,7 +47,7 @@ for class_id, name in model.names.items():
     CLASS_NAME_MAP[class_id] = matched_name
 
 # Detection cooldown (seconds)
-SCAN_COOLDOWN = 1.0
+SCAN_COOLDOWN = 2.0
 last_detection_time = 0
 
 def lookup_product(name):

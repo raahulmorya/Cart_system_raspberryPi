@@ -20,12 +20,43 @@ An automated computer vision system that detects products using YOLO object dete
 | LEDs                   | Red, Green, Blue                 |
 | Resistors              | 220Ω (x3)                        |
 
+## One step Initialization 
 
+- Create a firebase project  
+- Download Firebase Admin SDK 
+- Rename it as serviceAccountKey.json 
+- Move file to Cart_system_raspberryPi/
+Then run this :
+
+On Windows:
+```bash
+mkdir CartSystem
+cd CartSystem
+python -m venv cart_env
+Set-ExecutionPolicy Unrestricted -Scope Process
+.\cart_env\Scripts\activate
+pip install numpy firebase-admin ultralytics pillow tk RPi.GPIO
+git clone https://github.com/raahulmorya/Cart_system_raspberryPi
+cd Cart_system_raspberryPi
+```
+
+On Windows:
+```bash
+mkdir CartSystem
+cd CartSystem
+python -m venv cart_env
+source cart_env/bin/activate
+pip install numpy firebase-admin ultralytics pillow tk RPi.GPIO
+git clone https://github.com/raahulmorya/Cart_system_raspberryPi
+cd Cart_system_raspberryPi
+```
+Then switch to [Running the System on Window/Linux](#running-the-system-on-windowlinux)
+ 
 ## Create a Virtual Environment
 Use the following command to create a virtual environment named myenv:
 
 ```bash
-python3 -m venv cart_env
+python -m venv cart_env
 ```
 This will create a directory cart_env/ containing a standalone Python environment.
 
@@ -49,20 +80,20 @@ Once activated, your terminal will show (cart_env) at the beginning of the promp
 
 On Windows
 ```bash
-pip3 install numpy firebase-admin ultralytics pillow tk
+pip install numpy firebase-admin ultralytics pillow tk
 ```
 
 On Linux
 ```bash
-pip3 install numpy firebase-admin ultralytics pillow tk 
+pip install numpy firebase-admin ultralytics pillow tk 
 ```
 On Linux(Raspberry Pi)
 ```bash
 # 1. Install dependencies
-sudo apt update && sudo apt install -y python3-pip python3-opencv
+sudo apt update && sudo apt install -y python-pip python-opencv
 
 # 2. Install Python packages
-pip3 install numpy firebase-admin ultralytics pillow tk RPi.GPIO
+pip install numpy firebase-admin ultralytics pillow tk RPi.GPIO
 
 # 3. Enable camera
 sudo raspi-config
@@ -96,7 +127,7 @@ If camera not detected Change cv2.VideoCapture(0, backend) with cv2.VideoCapture
 ## Running the System on Raspberry Pi 4
 Manual Start
 ```bash
-python3 raspberry_pi_detect_products.py
+python raspberry_pi_detect_products.py
 ```
 
 Auto-start (systemd)
@@ -109,6 +140,6 @@ sudo systemctl enable --now product_scanner
 To view Real-Time cart items
 In new Terminal
 ```bash
-python3 smart_cart.py
+python smart_cart.py
 ```
 Proceed for checkout with Invoice Generation

@@ -10,12 +10,6 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 def setup_firestore():
-    # 1. Create Products Collection  or use add_products() for random barcode
-    products = [
-        {"barcode": "123456789", "name": "Coca-Cola 500ml", "price": 1.99},
-        {"barcode": "987654321", "name": "Lays Classic Chips", "price": 2.49},
-        {"barcode": "555555555", "name": "Mineral Water", "price": 0.99}
-    ]
     
     for product in products:
         db.collection("products").add(product)
@@ -27,12 +21,6 @@ def setup_firestore():
         "status": "active"
     })
     
-    # 3. Initialize Invoice Counter
-    db.collection("invoice_counter").document("current").set({
-        "last_number": 1000
-    })
-    
-
     print("🔥 Firebase setup completed successfully!")
 
 
@@ -95,3 +83,4 @@ def add_products():
 if __name__ == "__main__":
     setup_firestore()
     add_products()
+    print("🔥Setup completed successfully!")
