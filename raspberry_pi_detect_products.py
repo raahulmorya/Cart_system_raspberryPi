@@ -1,34 +1,42 @@
-import RPi.GPIO as GPIO
 import cv2
 import numpy as np
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 import time
-import threading
 from ultralytics import YOLO
+import RPi.GPIO as GPIO
 
-# LED Setup
+# Initialize GPIO
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+# LED pins
 GREEN_LED = 17  # New item added
 BLUE_LED = 27   # Quantity updated
-RED_LED = 22    # No recognized items
+RED_LED = 22    # No detection
+
+# Setup GPIO pins
 GPIO.setup(GREEN_LED, GPIO.OUT)
 GPIO.setup(BLUE_LED, GPIO.OUT)
 GPIO.setup(RED_LED, GPIO.OUT)
 
+# Initialize all LEDs to off
+GPIO.output(GREEN_LED, GPIO.LOW)
+GPIO.output(BLUE_LED, GPIO.LOW)
+GPIO.output(RED_LED, GPIO.LOW)
+
 # Initialize Firebase
-cred = credentials.Certificate("serviceAccount.json")
+cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # Initialize YOLO model
 model = YOLO('honey.pt')
 
-# Product name mapping
 # Create a list of all product base names from your database
 BASE_NAMES = [
-     "amul_darkchocolate", "balaji_aloo_sev", "balaji_ratlami_sev", 
+    "amul_darkchocolate", "balaji_aloo_sev", "balaji_ratlami_sev", 
     "balaji_wafers_chaatchaska", "balaji_wafers_masalamasti",
     "balaji_wafers_simplysalted", "balaji_wafers_tomatotwist",
     "britannia_marie_gold", "cadbury_celebrations", "closeup",
@@ -61,35 +69,39 @@ for class_id, name in model.names.items():
     
     CLASS_NAME_MAP[class_id] = matched_name
 
-# Track recognized items
-last_recognition_time = time.time()
-RECOGNITION_TIMEOUT = 2  # Seconds before red LED activates
+# Track recently detected objects
+recent_detections = {}  # {class_id: last_detection_time}
 
 def blink_led(pin, duration=0.5):
-    """Blink an LED for visual feedback"""
+    """Blink an LED for a specified duration"""
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(duration)
     GPIO.output(pin, GPIO.LOW)
 
-def set_led_state(recognized):
-    """Control red LED based on recognition state"""
-    global last_recognition_time
-    if recognized:
-        last_recognition_time = time.time()
-        GPIO.output(RED_LED, GPIO.LOW)
-    elif time.time() - last_recognition_time > RECOGNITION_TIMEOUT:
-        GPIO.output(RED_LED, GPIO.HIGH)
+def lookup_product(name):
+    """Search Firebase for product details by name"""
+    docs = db.collection("products").where("name", "==", name).get()
+    return docs[0].to_dict() if docs else None
+
+def get_category_color(class_id):
+    """Color coding for product categories"""
+    product_name = CLASS_NAME_MAP.get(class_id, "").lower()
+    if 'chocolate' in product_name or 'biscuit' in product_name:
+        return (0, 255, 0)  # Green for snacks
+    elif 'shampoo' in product_name or 'soap' in product_name:
+        return (255, 0, 0)  # Blue for personal care
+    return (255, 255, 255)  # Default: White
 
 def add_to_cart(product):
-    """Modified to include LED feedback"""
+    """Add product with full details to cart or increment quantity if already exists"""
     cart_ref = db.collection("carts").document("current")
     
     try:
         cart = cart_ref.get()
         if cart.exists:
             items = cart.to_dict().get("items", [])
-            found = False
             
+            found = False
             for item in items:
                 if item.get("barcode") == product.get("barcode"):
                     item["quantity"] += 1
@@ -100,7 +112,7 @@ def add_to_cart(product):
             if found:
                 cart_ref.update({"items": items})
                 print(f"➕ Updated quantity for: {product['name']}")
-                threading.Thread(target=blink_led, args=(BLUE_LED,)).start()
+                blink_led(BLUE_LED)  # Blue LED for quantity update
             else:
                 new_item = {
                     "barcode": product.get("barcode", ""),
@@ -111,7 +123,7 @@ def add_to_cart(product):
                 }
                 cart_ref.update({"items": firestore.ArrayUnion([new_item])})
                 print(f"✅ Added to cart: {product['name']}")
-                threading.Thread(target=blink_led, args=(GREEN_LED,)).start()
+                blink_led(GREEN_LED)  # Green LED for new item
         else:
             cart_ref.set({
                 "items": [{
@@ -123,17 +135,27 @@ def add_to_cart(product):
                 }]
             })
             print(f"✅ Created cart with: {product['name']}")
-            threading.Thread(target=blink_led, args=(GREEN_LED,)).start()
-            
+            blink_led(GREEN_LED)  # Green LED for new item
     except Exception as e:
         print(f"❌ Error updating cart: {e}")
 
 def process_frame(frame):
-    global last_recognition_time
-    recent_detections = {}  # Reset each frame
+    """Detect products and manage cart additions with cooldown"""
+    global recent_detections
+    
+    current_time = time.time()
+    
+    # Remove old detections from tracking
+    recent_detections = {k: v for k, v in recent_detections.items() 
+                        if current_time - v < 1.0}  # 1 second cooldown
     
     results = model(frame, verbose=False)
-    recognized = False
+    
+    # Turn on red LED if no detections
+    if len(results[0].boxes) == 0:
+        GPIO.output(RED_LED, GPIO.HIGH)
+    else:
+        GPIO.output(RED_LED, GPIO.LOW)
     
     for result in results:
         for box in result.boxes:
@@ -144,45 +166,50 @@ def process_frame(frame):
             product_name = CLASS_NAME_MAP.get(class_id, f"ID {class_id}")
             color = get_category_color(class_id)
             
-            # Draw bounding box
+            # Always draw bounding box for visualization
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-            cv2.putText(frame, f"{product_name} {conf:.2f}", 
-                       (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            cv2.putText(frame, f"{product_name} {conf:.2f}", (x1, y1 - 10),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
             
-            if conf > 0.5:
-                recognized = True
-                if class_id not in recent_detections:
-                    product = lookup_product(product_name)
-                    if product:
-                        recent_detections[class_id] = time.time()
-                        threading.Thread(
-                            target=lambda: (time.sleep(1), add_to_cart(product))
-                        ).start()
+            # Only process for cart if confidence is high and not in cooldown
+            if conf > 0.5 and class_id not in recent_detections:
+                product = lookup_product(product_name)
+                if product:
+                    # Mark as recently detected
+                    recent_detections[class_id] = current_time
+                    
+                    # Schedule cart addition after 1 second
+                    def delayed_add():
+                        time.sleep(1)
+                        add_to_cart(product)
+                    
+                    import threading
+                    threading.Thread(target=delayed_add).start()
     
-    set_led_state(recognized)
     return frame
 
 def main():
+    # Camera initialization
+    for backend in [cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY]:
+        cap = cv2.VideoCapture(0, backend)
+        if cap.isOpened():
+            print(f"Using backend: {backend}")
+            break
+    else:
+        print("Error: Could not open camera")
+        return
+    
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 15)
+    
+    print("System ready! Detected products will be added to cart after 1 second. Press 'q' to quit.")
+    
     try:
-        # Initialize LEDs
-        GPIO.output(GREEN_LED, GPIO.LOW)
-        GPIO.output(BLUE_LED, GPIO.LOW)
-        GPIO.output(RED_LED, GPIO.HIGH)  # Start with red LED on
-        
-        # Camera setup
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        
-        print("System ready! LEDs:")
-        print("- Green: New item added")
-        print("- Blue: Quantity updated")
-        print("- Red: No items recognized")
-        
         while True:
             ret, frame = cap.read()
             if not ret:
-                print("Failed to grab frame")
+                print("Failed to grab frame, retrying...")
                 time.sleep(0.1)
                 continue
             
@@ -191,8 +218,8 @@ def main():
             
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-                
     finally:
+        # Clean up
         cap.release()
         cv2.destroyAllWindows()
         GPIO.cleanup()
