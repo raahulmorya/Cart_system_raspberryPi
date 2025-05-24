@@ -118,11 +118,15 @@ python create_db_structure.py
 
 ## Running the System on Window/Linux
 
-To test on Windows/Linux
+To test model detection on Windows/Linux
+```bash
+python test_products.py
+```
+
+To detect and add to cart system on Windows/Linux
 ```bash
 python detect_products.py
 ```
-If camera not detected Change cv2.VideoCapture(0, backend) with cv2.VideoCapture(1, backend)
 
 ## Running the System on Raspberry Pi 4
 Manual Start
